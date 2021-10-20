@@ -1,9 +1,12 @@
-from button import Button
+from source.scripts.button import Button
 from source.scripts.main import App
+from source.sounds.manager import get_song
+
+click_sound = get_song("source/sounds/click.wav")
 
 
 class Scene:
-    settings = {"scale":..., "size":...}
+    settings = {"scale": ..., "size": ...}
 
     def __init__(self, app):
         self.app = app
@@ -34,16 +37,51 @@ class Menu(Scene):
 
     def __init__(self, app: App):
         Scene.__init__(self, app)
+        self.settings = {"scale": ..., "size": ..., "title": ...}
 
-        def change(*args):
+        def game(_):
+            self.app.scene = self.app.menu
+
+        def settings(_):
+            # self.app.scene = self.app.settings
             pass
 
-        button = Button
+        self.button_game = Button(
+            self.app.screen,
+            (300, 200),
+            ["menu"],
+            action=game
+        )
+
+        # button_settings = Button(
+        #     self.app.screen,
+        #     (400, 200),
+        #     ["settings"],
+        #     action=settings
+        # )
+
+    def draw(self):
+        self.button_game.render()
 
 
 class Game(Scene):
-    pass
+
+    def __init__(self, app: App):
+        Scene.__init__(self, app)
+        self.settings = {"scale": ..., "size": ..., "title": ...}
+
+    def handle_mouse_press(self, key, mouse_pos):
+        click_sound.play()
 
 
 class Shop(Scene):
-    pass
+
+    def __init__(self, app: App):
+        Scene.__init__(self, app)
+        self.settings = {"scale": ..., "size": ..., "title": "Shop"}
+
+
+class Settings(Scene):
+
+    def __init__(self, app: App):
+        Scene.__init__(self, app)

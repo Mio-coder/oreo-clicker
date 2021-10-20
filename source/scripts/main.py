@@ -8,6 +8,7 @@ from pygame.time import Clock
 from pygame.transform import scale
 
 from source.scripts.scenes import Game, Menu, Shop, Scene
+from source.sounds.manager import get_song
 
 
 class App:
@@ -18,10 +19,12 @@ class App:
         if config is None:
             with open("source/config.json") as file:
                 config = load(file)
+
         self.width: int = ...
         self.high: int = ...
         self.fps: int = ...
         self.start_scene: str = ...
+
         for name in ["width", "high", "fps", "start_scene"]:
             setattr(self, name, config[name])
 
@@ -35,7 +38,9 @@ class App:
         self.screen: Surface
 
         self._scene = getattr(self, self.start_scene, "menu")
-        # self.bgm = get_song("source/sounds/bgm.wav")
+        self.bgm_intro = get_song("source/songs/intro.wav")
+        self.bgm = get_song("source/sounds/bgm.wav")
+        self.bgm.is_running = False
 
     @property
     def scene(self) -> Scene:
@@ -73,10 +78,13 @@ class App:
         self.scene.update()
 
     def run(self):
-        # self.bgm.play(-1)
+        self.bgm_intro.play(1)
         self.done = False
         self._scene.initialize()
         while not self.done:
+            if self.clock.get_time() <= self.bgm_intro.get_length() and not self.bgm.is_running:
+                self.bgm.play(-1)
+                self.bgm.is_running = True
             self.update()
             self.draw()
             self.handle_events()
@@ -106,4 +114,5 @@ class App:
                 self.scene.handle_mouse_press(key, mouse_pos)
 
     def get_mouse_pos(self):
-        return pg.mouse.get_pos()[0] // self.scene_scale[0], pg.mouse.get_pos()[1] // self.scene_scale[1]
+        return pg.mouse.get_pos()[0] // self.scene_scale[0],\
+               pg.mouse.get_pos()[1] // self.scene_scale[1]
