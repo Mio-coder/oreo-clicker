@@ -8,4 +8,4 @@ def get_song(song: str) -> Sound:
 
 
 def get_path(name: str):
-    return join(abspath(""), "assets", "sounds", name)
+    return join(abspath(""), "source", "sounds", name)
