@@ -1,16 +1,18 @@
-from typing import Dict, Tuple
 import json
-import pygame as pg
 import os
+from typing import Dict, Tuple, Union
+
+from pygame import Surface, Rect
+from pygame.transform import scale
+from pygame.image import load
+from os.path import join
 
 
 class SpriteSheet:
-    def __init__(self, source: pg.Surface, info: Dict[str, Tuple[int, int, int, int]], default: str, scale: float = 1):
+    def __init__(self, source: Surface, info: Dict[str, Union[Tuple[int, int, int, int], str]], ):
         self.source = source
         self.info = info
-        self.images: Dict[str, pg.Surface] = dict()
-        self.default = default
-        self.scale = scale
+        self.images: Dict[str, Surface] = dict()
         self.generated = False
 
     def generate(self):
@@ -23,24 +25,30 @@ class SpriteSheet:
     def get(self, name: str):
         if name not in self.images:
             self.generate()
-        return self.images[name] if name in self.images else self.images[self.default]
+        return self.images[name] if name in self.images else self.images[self.info["default"]]
 
-    def get_subsurface(self, name: str) -> pg.Surface:
+    def __getitem__(self, item):
+        return self.get(item)
+
+    def get_subsurface(self, name: str) -> Surface:
         cords = self.info[name]
-        if self.scale == 1:
-            return self.source.subsurface(pg.Rect(cords))
-        raw_image = self.source.subsurface(pg.Rect(cords))
-        return pg.transform.scale(raw_image, (int(raw_image.get_width() * self.scale),
-                                              int(raw_image.get_height() * self.scale)))
+        if self.info["scale"] == 1:
+            return self.source.subsurface(Rect(cords))
+        raw_image = self.source.subsurface(Rect(cords))
+
+        return scale(raw_image, (
+            int(raw_image.get_width() * self.info["scale"]),
+            int(raw_image.get_height() * self.info["scale"]
+                )))
 
 
-def load_sprite_sheet(sheet: str, info: str, default: str, scale: float = 1):
-    return SpriteSheet(load_image(sheet), json.load(open(get_path(info))), default, scale)
+def load_sprite_sheet(name: str):
+    return SpriteSheet(load_image(name + "_sheet.png"), json.load(open(get_path(name + "_sheet_info.json"))))
 
 
 def load_image(name: str):
-    return pg.image.load(get_path(name))
+    return load(get_path(name))
 
 
 def get_path(name: str):
-    return os.path.join(os.path.abspath(""), "assets", "images", name)
+    return join(os.path.abspath(""), "source", "imgs", name)
